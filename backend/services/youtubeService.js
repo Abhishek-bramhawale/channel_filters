@@ -8,6 +8,25 @@ class YouTubeService {
     })
   }
 
+    async getVideoIds(channelId, publishedAfter) {
+    let videoIds = []
+    let nextPageToken = null
+    do {
+      const response = await this.youtube.search.list({
+        part: 'id',
+        channelId: channelId,
+        publishedAfter: publishedAfter.toISOString(),
+        order: 'date',
+        type: 'video',
+        maxResults: 50,
+        pageToken: nextPageToken
+      })
+      const ids = response.data.items.map(item => item.id.videoId)
+      videoIds = videoIds.concat(ids)
+      nextPageToken = response.data.nextPageToken
+    } while (nextPageToken && videoIds.length < 200)
+    return videoIds
+  }
   
   async getChannelIdFromUrl(url) { 
     let channelId = null
