@@ -1,0 +1,14 @@
+{
+  "name": "backend",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "~4.16.1",
+    "express-rate-limit": "^8.0.1"
+  }
+}
