@@ -27,6 +27,32 @@ class YouTubeService {
     } while (nextPageToken && videoIds.length < 200)
     return videoIds
   }
+
+  async getVideoDetails(videoIds) {
+    const videos = []
+    for (let i = 0; i < videoIds.length; i += 50) {
+      const batch = videoIds.slice(i, i + 50)
+      const response = await this.youtube.videos.list({
+        part: 'snippet,statistics,contentDetails',
+        id: batch.join(',')
+      })
+      const batchVideos = response.data.items.map(video =>({
+        id: video.id,
+        title: video.snippet.title,
+        description: video.snippet.description,
+        thumbnail: video.snippet.thumbnails.maxres?.url || video.snippet.thumbnails.high.url,
+          views: parseInt(video.statistics.viewCount || 0),
+          likes: parseInt(video.statistics.likeCount || 0),
+          comments: parseInt(video.statistics.commentCount || 0),
+        duration: video.contentDetails.duration,
+        uploadDate: video.snippet.publishedAt,
+        url: `https://www.youtube.com/watch?v=${video.id}`,
+        channelTitle: video.snippet.channelTitle
+      }))
+      videos.push(...batchVideos)
+    }
+    return videos
+  }
   
   async getChannelIdFromUrl(url) { 
     let channelId = null
