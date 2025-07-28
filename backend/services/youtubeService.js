@@ -1,5 +1,29 @@
 const { google } = require('googleapis')
 
+const express = require('express')
+const router = express.Router()
+const YouTubeService = require('../services/youtubeService')
+
+app.use('/api/youtube', require('./routes/youtube'))
+
+router.post('/analyze', async (req, res) => {
+  try {
+    const { channelUrl, days, minDuration, maxDuration, excludeShorts } = req.body
+    if (!channelUrl) {
+      return res.status(400).json({ error: 'Channel URL is required' })
+    }
+    const channelId = await YouTubeService.getChannelIdFromUrl(channelUrl)
+    const videos = await YouTubeService.getChannelVideos(
+      channelId, days, minDuration, maxDuration, excludeShorts
+    )
+    res.json({ videos })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+module.exports = router
+
 class YouTubeService {
   constructor() {
     this.youtube = google.youtube({
@@ -81,7 +105,7 @@ class YouTubeService {
     return response.data.items[0].snippet.channelId
   }
 
-   async getChannelVideos(channelId, days = 7, minDuration = null, maxDuration = null, excludeShorts = true) {
+   async getChannelVideos(channelId, days = 7, minDuration = null, maxDuration = null, excludeShorts = true) { //main filters
     const publishedAfter = new Date()
     publishedAfter.setDate(publishedAfter.getDate() - days)
     const videoIds = await this.getVideoIds(channelId, publishedAfter)
