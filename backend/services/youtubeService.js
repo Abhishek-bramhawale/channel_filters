@@ -8,7 +8,7 @@ class YouTubeService {
     })
   }
 
-    async getVideoIds(channelId, publishedAfter) {
+    async getVideoIds(channelId, publishedAfter) { //vid ids from channelid
     let videoIds = []
     let nextPageToken = null
     do {
@@ -28,7 +28,7 @@ class YouTubeService {
     return videoIds
   }
 
-  async getVideoDetails(videoIds) {
+  async getVideoDetails(videoIds) { //metadata
     const videos = []
     for (let i = 0; i < videoIds.length; i += 50) {
       const batch = videoIds.slice(i, i + 50)
@@ -54,7 +54,7 @@ class YouTubeService {
     return videos
   }
   
-  async getChannelIdFromUrl(url) { 
+  async getChannelIdFromUrl(url) { //url to id(channel)
     let channelId = null
     if (url.includes('/channel/')) {
       channelId = url.split('/channel/')[1].split(/[/?#]/)[0]
@@ -69,7 +69,7 @@ class YouTubeService {
     return channelId
   }
 
-  async searchChannelByUsername(query) { //actual api hitting to GET https://www.googleapis.com/youtube/v3/search
+  async searchChannelByUsername(query) { //(helper func) actual api hitting to GET https://www.googleapis.com/youtube/v3/search
 
     const response = await this.youtube.search.list({
       part: 'snippet',
@@ -79,6 +79,33 @@ class YouTubeService {
     })
     if (response.data.items.length === 0) throw new Error('Channel not found')
     return response.data.items[0].snippet.channelId
+  }
+
+   async getChannelVideos(channelId, days = 7, minDuration = null, maxDuration = null, excludeShorts = true) {
+    const publishedAfter = new Date()
+    publishedAfter.setDate(publishedAfter.getDate() - days)
+    const videoIds = await this.getVideoIds(channelId, publishedAfter)
+    if (videoIds.length === 0) return []
+    const videos = await this.getVideoDetails(videoIds)
+    let filteredVideos = videos.filter(video => {
+      const durationInSeconds = this.parseDuration(video.duration)
+      const durationInMinutes = durationInSeconds / 60
+      if (excludeShorts && durationInSeconds < 60) return false
+      if (minDuration && durationInMinutes < minDuration) return false
+      if (maxDuration && durationInMinutes > maxDuration) return false
+      return true
+    })
+    filteredVideos.sort((a, b) => b.views - a.views)
+    return filteredVideos
+  }
+
+  parseDuration(duration) {
+    const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/)
+    if (!match) return 0
+    const hours = parseInt(match[1]) || 0
+    const minutes = parseInt(match[2]) || 0
+    const seconds = parseInt(match[3]) || 0
+    return hours * 3600 + minutes * 60 + seconds
   }
 }
 
