@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const mongoose = require('mongoose');
+
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
@@ -25,6 +27,8 @@ const limiter = rateLimit({ //limits for too many tries
   max: 100, 
   message: "Too many requests, please try again later."
 });
+
+app.use('/api/youtube', require('./routes/youtube'));
 
 
 app.get('/', (req, res) => {
