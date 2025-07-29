@@ -33,6 +33,7 @@ class YouTubeService {
   }
 
     async getVideoIds(channelId, publishedAfter) { //vid ids from channelid
+      try {
     let videoIds = []
     let nextPageToken = null
     do {
@@ -50,9 +51,13 @@ class YouTubeService {
       nextPageToken = response.data.nextPageToken
     } while (nextPageToken && videoIds.length < 200)
     return videoIds
+    } catch (error) {
+    throw new Error(`Failed to get video IDs: ${error.message}`);
   }
+}
 
   async getVideoDetails(videoIds) { //metadata
+      try {
     const videos = []
     for (let i = 0; i < videoIds.length; i += 50) {
       const batch = videoIds.slice(i, i + 50)
@@ -76,9 +81,13 @@ class YouTubeService {
       videos.push(...batchVideos)
     }
     return videos
+    } catch (error) {
+    throw new Error(`Failed to get video details: ${error.message}`);
   }
+}
   
   async getChannelIdFromUrl(url) { //url to id(channel)
+     try {
     let channelId = null
     if (url.includes('/channel/')) {
       channelId = url.split('/channel/')[1].split(/[/?#]/)[0]
@@ -91,10 +100,13 @@ class YouTubeService {
     }
     if (!channelId) throw new Error('Invalid YouTube channel URL')
     return channelId
+  } catch (error) {
+    throw new Error(`Failed to extract channel ID: ${error.message}`);
   }
+}
 
   async searchChannelByUsername(query) { //(helper func) actual api hitting to GET https://www.googleapis.com/youtube/v3/search
-
+  try {
     const response = await this.youtube.search.list({
       part: 'snippet',
       q: query,
@@ -103,9 +115,13 @@ class YouTubeService {
     })
     if (response.data.items.length === 0) throw new Error('Channel not found')
     return response.data.items[0].snippet.channelId
+   } catch (error) {
+    throw new Error(`Failed to find channel: ${error.message}`);
   }
+}
 
    async getChannelVideos(channelId, days = 7, minDuration = null, maxDuration = null, excludeShorts = true) { //main filters
+    try {
     const publishedAfter = new Date()
     publishedAfter.setDate(publishedAfter.getDate() - days)
     const videoIds = await this.getVideoIds(channelId, publishedAfter)
@@ -121,7 +137,10 @@ class YouTubeService {
     })
     filteredVideos.sort((a, b) => b.views - a.views)
     return filteredVideos
+  } catch (error) {
+    throw new Error(`Failed to get channel videos: ${error.message}`);
   }
+}
 
   parseDuration(duration) {
     const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/)
@@ -130,6 +149,16 @@ class YouTubeService {
     const minutes = parseInt(match[2]) || 0
     const seconds = parseInt(match[3]) || 0
     return hours * 3600 + minutes * 60 + seconds
+  }
+
+  formatDuration(durationInSeconds) {
+    const hours = Math.floor(durationInSeconds / 3600);
+    const minutes = Math.floor((durationInSeconds % 3600) / 60);
+    const seconds = durationInSeconds % 60;
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
 }
 
