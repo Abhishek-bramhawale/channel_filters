@@ -29,6 +29,8 @@ const limiter = rateLimit({ //limits for too many tries
 });
 
 app.use('/api/youtube', require('./routes/youtube'));
+app.use('/api/cache', require('./routes/cache'));
+
 
 
 app.get('/', (req, res) => {
