@@ -10,20 +10,28 @@ class YouTubeService {
     })
   }
 
-    async getVideoIds(channelId, publishedAfter) { //vid ids from channelid
+    async getVideoIds(channelId, publishedAfter, publishedBefore) { //vid ids from channelid
       try {
     let videoIds = []
     let nextPageToken = null
     do {
-      const response = await this.youtube.search.list({
+      const searchParams = {
         part: 'id',
         channelId: channelId,
-        publishedAfter: publishedAfter.toISOString(),
         order: 'date',
         type: 'video',
         maxResults: 50,
         pageToken: nextPageToken
-      })
+      }
+      
+      if (publishedAfter) {
+        searchParams.publishedAfter = publishedAfter.toISOString()
+      }
+      if (publishedBefore) {
+        searchParams.publishedBefore = publishedBefore.toISOString()
+      }
+      
+      const response = await this.youtube.search.list(searchParams)
       const ids = response.data.items.map(item => item.id.videoId)
       videoIds = videoIds.concat(ids)
       nextPageToken = response.data.nextPageToken
@@ -51,8 +59,10 @@ class YouTubeService {
           views: parseInt(video.statistics.viewCount || 0),
           likes: parseInt(video.statistics.likeCount || 0),
           comments: parseInt(video.statistics.commentCount || 0),
-        duration: video.contentDetails.duration,
+        duration: this.formatDuration(this.parseDuration(video.contentDetails.duration)),
+        originalDuration: video.contentDetails.duration,
         uploadDate: video.snippet.publishedAt,
+        uploadDateFormatted: new Date(video.snippet.publishedAt).toLocaleDateString(),
         url: `https://www.youtube.com/watch?v=${video.id}`,
         channelTitle: video.snippet.channelTitle
       }))
@@ -98,15 +108,21 @@ class YouTubeService {
   }
 }
 
-   async getChannelVideos(channelId, days = 7, minDuration = null, maxDuration = null, excludeShorts = true) { //main filters
+   async getChannelVideos(channelId, dateRange = { start: null, end: null }, minDuration = null, maxDuration = null, excludeShorts = true) { //main filters
     try {
-    const publishedAfter = new Date()
-    publishedAfter.setDate(publishedAfter.getDate() - days)
-    const videoIds = await this.getVideoIds(channelId, publishedAfter)
+    const publishedAfter = dateRange.start ? new Date(dateRange.start) : null
+    const publishedBefore = dateRange.end ? new Date(dateRange.end) : null
+
+    const videoIds = await this.getVideoIds(channelId, publishedAfter, publishedBefore)
     if (videoIds.length === 0) return []
     const videos = await this.getVideoDetails(videoIds)
     let filteredVideos = videos.filter(video => {
-      const durationInSeconds = this.parseDuration(video.duration)
+      const uploadDate = new Date(video.uploadDate)
+      if (publishedAfter && uploadDate < publishedAfter) return false
+      if (publishedBefore && uploadDate > publishedBefore) return false
+      
+      const originalDuration = video.originalDuration || video.duration
+      const durationInSeconds = this.parseDuration(originalDuration)
       const durationInMinutes = durationInSeconds / 60
       if (excludeShorts && durationInSeconds < 60) return false
       if (minDuration && durationInMinutes < minDuration) return false

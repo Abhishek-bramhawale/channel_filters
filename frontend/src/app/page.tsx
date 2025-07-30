@@ -7,14 +7,16 @@ interface Video {
   title: string;
   views: number;
   duration: string;
-  link: string;
+  url: string;
   uploadDate: string;
+  uploadDateFormatted: string;
 }
 
 export default function Home() {
 
   let [channelUrl,setChannelUrl]=useState("");
-let [days,setDays]=useState(1);
+let [dateFrom,setDateFrom]=useState("");
+let [dateTo,setDateTo]=useState("");
 let [durationMin,setDurationMin]=useState(0);
 let [durationMax,setDurationMax]=useState(0);
 let [excludeShorts,setExcludeShorts]=useState(false);
@@ -35,7 +37,10 @@ let [excludeShorts,setExcludeShorts]=useState(false);
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           channelUrl,
-          days,
+          dateRange: {
+            start: dateFrom || null,
+            end: dateTo || null
+          },
           minDuration: durationMin,
           maxDuration: durationMax,
           excludeShorts,
@@ -68,17 +73,29 @@ let [excludeShorts,setExcludeShorts]=useState(false);
             onChange={(e) => setChannelUrl(e.target.value)}
           />
         </label>
-        <label className="flex flex-col gap-1">
-          Number of days
-          <input
-            type="number"
-            min={1}
-            max={30}
-            className="border rounded px-3 py-2"
-            value={days}
-            onChange={(e) => setDays(Number(e.target.value))}
-          />
-        </label>
+        <div className="flex gap-4">
+          <label className="flex flex-col gap-1 flex-1">
+            From Date
+            <input
+              type="date"
+              className="border rounded px-3 py-2"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+            />
+          </label>
+          <label className="flex flex-col gap-1 flex-1">
+            To Date
+            <input
+              type="date"
+              className="border rounded px-3 py-2"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+            />
+          </label>
+        </div>
+        <div className="text-sm text-gray-600">
+          Leave both dates empty to get all videos of channel or set a date range to filter videos
+        </div>
         <div className="flex gap-4">
           <label className="flex flex-col gap-1 flex-1">
             Duration min (minutes)
@@ -142,15 +159,15 @@ let [excludeShorts,setExcludeShorts]=useState(false);
                   <td className="p-2 max-w-xs truncate" title={v.title}>{v.title}</td>
                   <td className="p-2 text-right">{v.views?.toLocaleString()}</td>
                   <td className="p-2 text-center">{v.duration}</td>
-                  <td className="p-2 text-center">{v.uploadDate}</td>
+                  <td className="p-2 text-center">{v.uploadDateFormatted}</td>
                   <td className="p-2 text-center">
                     <a
-                      href={v.link}
+                      href={v.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 underline"
+                      className="text-blue-600 underline hover:text-blue-800"
                     >
-                      
+                      Watch
                     </a>
                   </td>
                 </tr>
