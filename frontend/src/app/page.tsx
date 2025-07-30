@@ -110,10 +110,11 @@ let [excludeShorts,setExcludeShorts]=useState(false);
           Exclude Shorts
         </label>
         <button
-          type="submit"  disabled={loading}
+          type="submit"
           className="bg-blue-600 text-white rounded px-4 py-2 font-semibold hover:bg-blue-700 transition"
+          disabled={loading}
         >
-          Submit
+          {loading ? "Loading..." : "Analyze"}
         </button>
         {error && <div className="text-red-600 font-medium">{error}</div>}
       </form>

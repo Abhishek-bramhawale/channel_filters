@@ -10,6 +10,7 @@
     "dotenv": "^17.2.1",
     "express": "~4.16.1",
     "express-rate-limit": "^8.0.1",
+    "googleapis": "^154.1.0",
     "mongoose": "^8.16.5"
   }
 }
