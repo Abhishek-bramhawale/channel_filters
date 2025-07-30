@@ -117,6 +117,51 @@ let [excludeShorts,setExcludeShorts]=useState(false);
         </button>
         {error && <div className="text-red-600 font-medium">{error}</div>}
       </form>
+
+
+      <div className="w-full max-w-5xl">
+        {videos.length > 0 && (
+          <table className="w-full border-collapse bg-white shadow rounded-lg overflow-hidden">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="p-2">Thumbnail</th>
+                <th className="p-2">Title</th>
+                <th className="p-2">Views</th>
+                <th className="p-2">Duration</th>
+                <th className="p-2">Upload Date</th>
+                <th className="p-2">Link</th>
+              </tr>
+            </thead>
+            <tbody>
+              {videos.map((v, i) => (
+                <tr key={i} className="border-t hover:bg-gray-50">
+                  <td className="p-2">
+                    <img src={v.thumbnail} alt={v.title} className="w-24 h-14 object-cover rounded" />
+                  </td>
+                  <td className="p-2 max-w-xs truncate" title={v.title}>{v.title}</td>
+                  <td className="p-2 text-right">{v.views?.toLocaleString()}</td>
+                  <td className="p-2 text-center">{v.duration}</td>
+                  <td className="p-2 text-center">{v.uploadDate}</td>
+                  <td className="p-2 text-center">
+                    <a
+                      href={v.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline"
+                    >
+                      
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        {videos.length === 0 && !loading && (
+          <div className="text-black text-center">No videos to display.</div>
+        )}
+      </div>
+
     </div>
   );
 }
