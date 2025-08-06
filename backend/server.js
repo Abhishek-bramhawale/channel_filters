@@ -11,9 +11,8 @@ const PORT = process.env.PORT || 5000;
 
 
 const allowedOrigins = [
-  'http://localhost:3000',
-  'https://channel-filters.vercel.app/',
-  
+  'http://localhost:3001',
+  'https://channel-filters.vercel.app',
 ];
 
 app.use(cors({ 

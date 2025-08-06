@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const CacheModel = require('../models/Cache');
+const CacheModel = require('../models/cache');
 
 router.delete('/clear', async (req, res) => {
   try {

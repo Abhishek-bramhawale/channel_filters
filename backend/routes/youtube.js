@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const YouTubeService = require('../services/youtubeService');
-const CacheModel = require('../models/Cache');
+const CacheModel = require('../models/cache');
 
 router.get('/test', (req, res) => {
   res.json({ message: 'YouTube API is working!' });
